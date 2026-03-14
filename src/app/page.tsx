@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from 'react';
+import { Flip } from "gsap/Flip"
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -14,7 +15,7 @@ import { ClipPathLinks } from '../components/ui/clip-path-links'; // Updated to 
 import { FallingPattern } from '../components/ui/falling-pattern'; // Updated to use @/ alias
 import { Particles } from '../components/ui/particles'; // Updated to use @/ alias
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother, DrawSVGPlugin);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, DrawSVGPlugin, Flip)
 
 const CLOUDINARY_BASE = "https://res.cloudinary.com/djtemmctt/image/upload/q_auto:eco,f_auto/";
 const CLOUDINARY_BASEVID = "https://res.cloudinary.com/djtemmctt/video/upload/q_auto:eco,f_auto/";
@@ -27,6 +28,7 @@ export default function Hub() {
   
   // FIXED: Explicitly tell TypeScript this array holds video elements
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+
 
   // FIXED: Tell TypeScript that 'index' is a number
   const playVideo = (index: number) => {
@@ -58,6 +60,12 @@ useGSAP(() => {
     duration: 0.8,
     ease: "power2.out"
   });
+
+  gsap.to(".lab-page", {
+    opacity: 1,
+    duration: 1,
+    ease: "power2.out"
+  })
 
   gsap.from(".hero-heading", {
     scale: 0.92,
@@ -279,6 +287,7 @@ useGSAP(() => {
             {labs.map((lab, i) => (
               <div key={lab.id} className="card-wrapper w-full mb-[80vh] last:mb-0">
                 <div
+                id={`lab-card-${lab.id}`}
                   className="card-interactive relative w-full h-[550px] overflow-hidden border border-white/10 bg-black/80 group transition-all duration-700 hover:border-white/30 shadow-2xl transform-gpu"
                   onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect()
@@ -363,7 +372,82 @@ useGSAP(() => {
                     </div>
 
                     <div 
-                      onClick={() => router.push(`/labs/${lab.id}`)}
+                      onClick={() => {
+                        const card = document.getElementById(`lab-card-${lab.id}`)
+                        if (!card) return
+
+                        const rect = card.getBoundingClientRect()
+
+                        // Clone the card at its exact screen position
+                        const clone = card.cloneNode(true) as HTMLElement
+                        clone.style.cssText = `
+                          position: fixed;
+                          top: ${rect.top}px;
+                          left: ${rect.left}px;
+                          width: ${rect.width}px;
+                          height: ${rect.height}px;
+                          margin: 0;
+                          z-index: 9999;
+                          pointer-events: none;
+                          border-radius: 0;
+                          overflow: hidden;
+                        `
+                        document.body.appendChild(clone)
+
+                        // Black curtain
+                        const curtain = document.createElement("div")
+                        curtain.style.cssText = `
+                          position: fixed;
+                          inset: 0;
+                          background: black;
+                          z-index: 9998;
+                          opacity: 0;
+                          pointer-events: none;
+                        `
+                        document.body.appendChild(curtain)
+
+                        const cloneVideo = clone.querySelector("video") as HTMLVideoElement | null
+                        if (cloneVideo) {
+                          cloneVideo.muted = true
+                          cloneVideo.play().catch(() => {})
+                        }
+
+                        const tl = gsap.timeline({
+                          onComplete: () => {
+                            router.push(`/labs/${lab.id}`)
+                            clone.remove()
+                            curtain.remove()
+                          }
+                        })
+
+                        // Bloom clone to fullscreen
+                        tl.to(clone, {
+                          top: 0,
+                          left: 0,
+                          width: "100vw",
+                          height: "100vh",
+                          duration: 0.9,
+                          ease: "expo.inOut",
+                        })
+
+                        // Video inside saturates and blooms
+                        if (cloneVideo) {
+                          tl.to(cloneVideo, {
+                            opacity: 0.85,
+                            scale: 1.08,
+                            filter: "grayscale(0)",
+                            duration: 0.9,
+                            ease: "expo.inOut",
+                          }, "<")
+                        }
+
+                        // Black curtain sweeps over
+                        tl.to(curtain, {
+                          opacity: 1,
+                          duration: 0.4,
+                          ease: "power3.in",
+                        }, "-=0.15")
+                      }}
                       className="text-[10px] font-bold border-t border-white/10 pt-8 text-white/20 tracking-[0.3em] flex justify-between items-center group-hover:text-white transition-colors cursor-pointer"
                     >
                       <span>VIEW_LIVE_FEED</span>
