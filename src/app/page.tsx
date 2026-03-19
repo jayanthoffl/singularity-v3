@@ -1,21 +1,22 @@
 "use client";
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Flip } from "gsap/Flip"
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { useGSAP } from '@gsap/react';
-import { Star } from 'lucide-react';
+import { Star, ChevronDown } from 'lucide-react';
 
 import { labs } from '../data/labs';
 import { ClipPathLinks } from '../components/ui/clip-path-links'; // Updated to use @/ alias
 import { FallingPattern } from '../components/ui/falling-pattern'; // Updated to use @/ alias
 import { Particles } from '../components/ui/particles'; // Updated to use @/ alias
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother, DrawSVGPlugin, Flip)
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, DrawSVGPlugin, Flip, ScrollToPlugin)
 
 const CLOUDINARY_BASE = "https://res.cloudinary.com/djtemmctt/image/upload/q_auto:eco,f_auto/";
 const CLOUDINARY_BASEVID = "https://res.cloudinary.com/djtemmctt/video/upload/q_auto:eco,f_auto/";
@@ -25,10 +26,53 @@ const singularityLogo = "https://res.cloudinary.com/djtemmctt/image/upload/v1771
 export default function Hub() {
   const container = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
+  const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
+  const labsDropdownRef = useRef<HTMLDivElement>(null);
+  const eventsDropdownRef = useRef<HTMLDivElement>(null);
   
   // FIXED: Explicitly tell TypeScript this array holds video elements
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
 
+  const events = [
+    {
+      id: "schrodingers-cat",
+      name: "Schrödinger's Cat",
+      url: "https://schrodingerscat.singularitylabsrmap.space/"
+    }
+  ];
+
+  // Handle outside clicks to close dropdowns
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (labsDropdownRef.current && !labsDropdownRef.current.contains(e.target as Node)) {
+        setLabsDropdownOpen(false);
+      }
+      if (eventsDropdownRef.current && !eventsDropdownRef.current.contains(e.target as Node)) {
+        setEventsDropdownOpen(false);
+      }
+    };
+
+    if (labsDropdownOpen || eventsDropdownOpen) {
+      document.addEventListener('click', handleOutsideClick);
+      return () => document.removeEventListener('click', handleOutsideClick);
+    }
+  }, [labsDropdownOpen, eventsDropdownOpen]);
+
+  // Handle smooth scroll to contact section
+  const handleContactScroll = () => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      gsap.to(window, {
+        scrollTo: {
+          y: contactSection,
+          autoKill: true
+        },
+        duration: 1,
+        ease: "power2.inOut"
+      });
+    }
+  };
 
   // FIXED: Tell TypeScript that 'index' is a number
   const playVideo = (index: number) => {
@@ -219,18 +263,81 @@ useGSAP(() => {
           </div>
 
           {/* NAVIGATION */}
-          <nav className="fixed top-0 left-0 w-full z-[100] px-10 py-6 flex justify-between items-center mix-blend-difference">
-            <div className="flex items-center gap-4">
-              <img src={singularityLogo} alt="Logo" className="w-10 h-10 object-contain" />
-              <div className="font-black text-xl tracking-tighter uppercase leading-none">Singularity Student Lab</div>
-            </div>
-            <div className="flex gap-10 font-mono text-[11px] tracking-[0.3em] opacity-60 uppercase">
-              <span>About Us</span>
-              <span>Labs</span>
-              <span>Events</span>
-              <span>Contact</span>
-            </div>
-          </nav>
+<nav className="fixed top-0 left-0 w-full z-100 px-10 py-6 flex justify-between items-center mix-blend-difference text-white">
+  <div className="flex items-center gap-4">
+    <img src={singularityLogo} alt="Logo" className="w-10 h-10 object-contain" />
+    <div className="font-black text-xl tracking-tighter uppercase leading-none">
+      Singularity Student Lab
+    </div>
+  </div>
+  
+  <div className="flex gap-10 font-mono text-[11px] tracking-[0.3em] opacity-60 uppercase">
+    <a href="#about" className="hover:opacity-100 transition-opacity cursor-pointer">About Us</a>
+    
+    {/* Labs Dropdown */}
+    <div 
+      ref={labsDropdownRef}
+      className="relative"
+    >
+      <button 
+        onClick={() => setLabsDropdownOpen(!labsDropdownOpen)}
+        className="hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-2"
+      >
+        LABS
+        <ChevronDown size={12} className={`transition-transform duration-200 ${labsDropdownOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {labsDropdownOpen && (
+        <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-50 backdrop-blur-sm z-50">
+          {labs.map((lab) => (
+            <button
+              key={lab.id}
+              onClick={() => {
+                router.push(`/labs/${lab.id}`);
+                setLabsDropdownOpen(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs whitespace-nowrap"
+            >
+              {lab.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Events Dropdown */}
+    <div 
+      ref={eventsDropdownRef}
+      className="relative"
+    >
+      <button 
+        onClick={() => setEventsDropdownOpen(!eventsDropdownOpen)}
+        className="hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-2"
+      >
+        EVENTS
+        <ChevronDown size={12} className={`transition-transform duration-200 ${eventsDropdownOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {eventsDropdownOpen && (
+        <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-55 backdrop-blur-sm z-50">
+          {events.map((event) => (
+            <a
+              key={event.id}
+              href={event.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs whitespace-nowrap"
+            >
+              {event.name}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <button onClick={handleContactScroll} className="hover:opacity-100 transition-opacity cursor-pointer">Contact</button>
+  </div>
+</nav>
 
           {/* HERO SECTION */}
           <section className="relative min-h-[140vh] pt-60 flex flex-col items-center overflow-hidden">
@@ -248,9 +355,9 @@ useGSAP(() => {
               </h1>
             </div>
 
-            <div className="parallax-grid grid grid-cols-4 gap-8 w-full px-12 absolute top-1/2 -translate-y-1/2 z-0">
+            <div className="parallax-grid grid grid-cols-4 gap-8 w-full px-12 absolute top-1/2 -translate-y-1/2 z-0" >
                {[
-                 "WhatsApp_Image_2026-02-15_at_2.46.24_AM_aj1qy8.jpg",
+                 "first_jqmtz8.jpg",
                  "WhatsApp_Image_2026-02-15_at_2.46.25_AM_ttclec.jpg",
                  "WhatsApp_Image_2026-02-15_at_2.46.25_AM_1_b5r7lz.jpg",
                  "WhatsApp_Image_2026-02-15_at_2.46.25_AM_2_f2qg5v.jpg"
@@ -460,7 +567,7 @@ useGSAP(() => {
           </div>
 
           {/* PING US SECTION */}
-          <section className="relative min-h-[70vh] flex flex-col items-center justify-center z-30 px-6 py-10 bg-black">
+          <section id="contact" className="relative min-h-[70vh] flex flex-col items-center justify-center z-30 px-6 py-10 bg-black">
             <h2 className="text-[5vw] font-black uppercase tracking-tighter mb-16 leading-none">Ping Us</h2>
             <div className="w-full max-w-5xl">
               <ClipPathLinks />
