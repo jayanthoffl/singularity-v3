@@ -21,15 +21,15 @@ export const ClipPathLinks = () => {
       </div> */}
       <div className="grid grid-cols-2 divide-x divide-white/10">
         {/* <LinkBox Icon={Twitter} href="https://x.com/" /> */}
-        <LinkBox Icon={Linkedin} href="https://www.linkedin.com/in/the-singularity-advanced-research-lab-srmap" />
+        <LinkBox Icon={Linkedin} href="https://www.linkedin.com/company/singularity-student-lab-srmap/" />
         <LinkBox Icon={Instagram} href="https://www.instagram.com/thesingularity.srmap" />
         {/* <LinkBox Icon={Facebook} href="https://www.facebook.com/" /> */}
       </div>
       <div className="grid grid-cols-3 divide-x divide-white/10">
-        <LinkBox Icon={FaDiscord} href="https://discord.com/users/1367756111725334599" />
+        <LinkBox Icon={FaDiscord} href="https://discord.com/" />
         <LinkBox Icon={SiGoogle} href="mailto:singularitylab@srmap.edu.in" />
         <LinkBox
-          href="https://kamaleshsaportfolio.netlify.app/"
+          href="https://singularitylabsrmap.space/"
           imgSrc="https://res.cloudinary.com/djtemmctt/image/upload/v1771104005/singularity_new_logo_knedxr.png"
         />
       </div>
