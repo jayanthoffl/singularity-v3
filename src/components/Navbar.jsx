@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
-import { labs } from '../data/labs';
+import { labs } from '../data/labs'; 
+
+const singularityLogo = "https://res.cloudinary.com/djtemmctt/image/upload/v1771104005/singularity_new_logo_knedxr.png";
 
 export default function Navbar() {
-  const [labsOpen, setLabsOpen] = useState(false);
-  const [eventsOpen, setEventsOpen] = useState(false);
+  const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
+  const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
+  const labsDropdownRef = useRef(null);
+  const eventsDropdownRef = useRef(null);
 
   const events = [
     {
@@ -17,34 +21,57 @@ export default function Navbar() {
     }
   ];
 
+  useEffect(() => {
+    // Removed the ': MouseEvent' and 'as Node' types
+    const handleOutsideClick = (e) => {
+      if (labsDropdownRef.current && !labsDropdownRef.current.contains(e.target)) {
+        setLabsDropdownOpen(false);
+      }
+      if (eventsDropdownRef.current && !eventsDropdownRef.current.contains(e.target)) {
+        setEventsDropdownOpen(false);
+      }
+    };
+
+    if (labsDropdownOpen || eventsDropdownOpen) {
+      document.addEventListener('click', handleOutsideClick);
+      return () => document.removeEventListener('click', handleOutsideClick);
+    }
+  }, [labsDropdownOpen, eventsDropdownOpen]);
+
   return (
-    <nav className="fixed top-0 left-0 w-full z-100 p-8 flex justify-between items-center mix-blend-difference">
-      <div className="font-black italic text-xl tracking-tighter text-white">SINGULARITY</div>
-      <div className="flex gap-8 font-mono text-[10px] tracking-widest text-white/60">
-        <a href="#about" className="hover:text-white transition-colors">ABOUT</a>
+    <nav className="fixed top-0 left-0 w-full z-[100] px-10 py-6 flex justify-between items-center mix-blend-difference text-white">
+      
+      <Link href="/">
+        <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
+          <img src={singularityLogo} alt="Logo" className="w-10 h-10 object-contain" />
+          <div className="font-black text-xl tracking-tighter uppercase leading-none">
+            Singularity Student Lab
+          </div>
+        </div>
+      </Link>
+      
+      <div className="flex gap-10 font-mono text-[11px] tracking-[0.3em] opacity-60 uppercase">
+        <Link href="/about" className="hover:opacity-100 transition-opacity cursor-pointer">
+          About Us
+        </Link>
         
-        {/* Labs Dropdown */}
-        <div className="relative group">
+        <div ref={labsDropdownRef} className="relative">
           <button 
-            className="hover:text-white transition-colors flex items-center gap-1"
-            onMouseEnter={() => setLabsOpen(true)}
-            onMouseLeave={() => setLabsOpen(false)}
+            onClick={() => setLabsDropdownOpen(!labsDropdownOpen)}
+            className="hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-2"
           >
             LABS
-            <ChevronDown size={12} className={`transition-transform duration-200 ${labsOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown size={12} className={`transition-transform duration-200 ${labsDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           
-          {labsOpen && (
-            <div 
-              className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-50 backdrop-blur-sm"
-              onMouseEnter={() => setLabsOpen(true)}
-              onMouseLeave={() => setLabsOpen(false)}
-            >
+          {labsDropdownOpen && (
+            <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-50 backdrop-blur-sm z-50">
               {labs.map((lab) => (
                 <Link
                   key={lab.id}
                   href={`/labs/${lab.id}`}
-                  className="block px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs"
+                  onClick={() => setLabsDropdownOpen(false)}
+                  className="block w-full text-left px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs whitespace-nowrap"
                 >
                   {lab.name}
                 </Link>
@@ -53,30 +80,25 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Events Dropdown */}
-        <div className="relative group">
+        <div ref={eventsDropdownRef} className="relative">
           <button 
-            className="hover:text-white transition-colors flex items-center gap-1"
-            onMouseEnter={() => setEventsOpen(true)}
-            onMouseLeave={() => setEventsOpen(false)}
+            onClick={() => setEventsDropdownOpen(!eventsDropdownOpen)}
+            className="hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-2"
           >
             EVENTS
-            <ChevronDown size={12} className={`transition-transform duration-200 ${eventsOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown size={12} className={`transition-transform duration-200 ${eventsDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           
-          {eventsOpen && (
-            <div 
-              className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-55 backdrop-blur-sm"
-              onMouseEnter={() => setEventsOpen(true)}
-              onMouseLeave={() => setEventsOpen(false)}
-            >
+          {eventsDropdownOpen && (
+            <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-55 backdrop-blur-sm z-50">
               {events.map((event) => (
                 <a
                   key={event.id}
                   href={event.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs"
+                  onClick={() => setEventsDropdownOpen(false)}
+                  className="block px-4 py-2 hover:bg-white/10 transition-colors text-white/80 hover:text-white text-xs whitespace-nowrap"
                 >
                   {event.name}
                 </a>
@@ -85,7 +107,9 @@ export default function Navbar() {
           )}
         </div>
 
-        <a href="#contact" className="hover:text-white transition-colors">CONTACT</a>
+        <Link href="/#contact" className="hover:opacity-100 transition-opacity cursor-pointer">
+          Contact
+        </Link>
       </div>
     </nav>
   );
