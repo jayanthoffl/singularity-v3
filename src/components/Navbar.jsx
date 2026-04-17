@@ -69,7 +69,7 @@ export default function Navbar() {
   return (
     <>
       {/* ===== Main Navbar ===== */}
-      <nav className="fixed top-0 left-0 w-full z-[100] px-5 md:px-10 py-4 md:py-6 flex justify-between items-center mix-blend-difference text-white">
+      <nav className="fixed top-0 left-0 w-full z-[100] px-4 md:px-10 py-3 md:py-6 flex justify-between items-center mix-blend-difference text-white">
         {/* Logo + Brand */}
         <Link href="/" onClick={closeMobileMenu}>
           <div className="flex items-center gap-3 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity">
@@ -106,7 +106,7 @@ export default function Navbar() {
             </button>
 
             {labsDropdownOpen && (
-              <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-50 backdrop-blur-sm z-50">
+              <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-[12.5rem] backdrop-blur-sm z-50">
                 {labs.map((lab) => (
                   <Link
                     key={lab.id}
@@ -134,7 +134,7 @@ export default function Navbar() {
             </button>
 
             {eventsDropdownOpen && (
-              <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-55 backdrop-blur-sm z-50">
+              <div className="absolute top-full mt-2 left-0 bg-black/95 border border-white/20 rounded-lg shadow-lg py-2 min-w-[13.75rem] backdrop-blur-sm z-50">
                 {events.map((event) => (
                   <a
                     key={event.id}
@@ -178,12 +178,12 @@ export default function Navbar() {
         }`}
       >
         {/* Mobile menu content — pushed below the navbar */}
-        <div className="flex flex-col justify-center flex-1 px-8 pt-24 pb-12 gap-2">
+        <div className="flex flex-col justify-center flex-1 px-6 md:px-8 pt-20 md:pt-24 pb-8 md:pb-12 gap-2">
           {/* About Us */}
           <Link
             href="/about"
             onClick={closeMobileMenu}
-            className={`block text-white text-2xl font-black uppercase tracking-tight py-4 border-b border-white/10 transition-all duration-500 ${
+            className={`block text-white text-xl md:text-2xl font-black uppercase tracking-tight py-3 md:py-4 border-b border-white/10 transition-all duration-500 ${
               mobileMenuOpen
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
@@ -204,7 +204,7 @@ export default function Navbar() {
           >
             <button
               onClick={() => setMobileLabsOpen(!mobileLabsOpen)}
-              className="flex items-center justify-between w-full py-4 text-white text-2xl font-black uppercase tracking-tight cursor-pointer"
+              className="flex items-center justify-between w-full py-3 md:py-4 text-white text-xl md:text-2xl font-black uppercase tracking-tight cursor-pointer"
             >
               Labs
               <ChevronDown
@@ -243,7 +243,7 @@ export default function Navbar() {
           >
             <button
               onClick={() => setMobileEventsOpen(!mobileEventsOpen)}
-              className="flex items-center justify-between w-full py-4 text-white text-2xl font-black uppercase tracking-tight cursor-pointer"
+              className="flex items-center justify-between w-full py-3 md:py-4 text-white text-xl md:text-2xl font-black uppercase tracking-tight cursor-pointer"
             >
               Events
               <ChevronDown
@@ -277,7 +277,7 @@ export default function Navbar() {
           <Link
             href="/#contact"
             onClick={closeMobileMenu}
-            className={`block text-white text-2xl font-black uppercase tracking-tight py-4 border-b border-white/10 transition-all duration-500 ${
+            className={`block text-white text-xl md:text-2xl font-black uppercase tracking-tight py-3 md:py-4 border-b border-white/10 transition-all duration-500 ${
               mobileMenuOpen
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
@@ -289,7 +289,7 @@ export default function Navbar() {
         </div>
 
         {/* Bottom branding in mobile menu */}
-        <div className="px-8 pb-8 text-white/20 font-mono text-[10px] tracking-[0.3em] uppercase">
+        <div className="px-6 md:px-8 pb-6 md:pb-8 text-white/20 font-mono text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase">
           Singularity Student Lab — SRMAP
         </div>
       </div>
