@@ -15,6 +15,7 @@ import { FallingPattern } from "../components/ui/falling-pattern";
 import { Particles } from "../components/ui/particles";
 import { ClipPathLinks } from "../components/ui/clip-path-links";
 import Footer from "../components/Footer";
+import TargetCursor from "../components/ui/TargetCursor";
 
 gsap.registerPlugin(
   ScrollTrigger,
@@ -209,6 +210,12 @@ export default function Hub() {
 
   return (
     <div ref={container} className="bg-black text-white overflow-hidden">
+      <TargetCursor
+        spinDuration={3}
+        hideDefaultCursor={true}
+        parallaxOn={true}
+        hoverDuration={0.25}
+      />
       <div id="smooth-wrapper">
         <div
           id="smooth-content"
@@ -309,7 +316,75 @@ export default function Hub() {
               >
                 <div
                   id={`lab-card-${lab.id}`}
-                  className="card-interactive relative w-full h-[400px] md:h-[550px] overflow-hidden border border-white/10 bg-black/80 group transition-all duration-700 hover:border-white/30 shadow-2xl transform-gpu"
+                  className="card-interactive cursor-target relative w-full h-[400px] md:h-[550px] overflow-hidden border border-white/10 bg-black/80 group transition-all duration-700 hover:border-white/30 shadow-2xl transform-gpu cursor-pointer"
+                  onClick={() => {
+                    if (isNavigating) return;
+                    setIsNavigating(true);
+
+                    const card = document.getElementById(
+                      `lab-card-${lab.id}`,
+                    );
+                    if (!card) return;
+
+                    const rect = card.getBoundingClientRect();
+                    const clone = card.cloneNode(true) as HTMLElement;
+                    clone.style.cssText = `
+                      position: fixed; top: ${rect.top}px; left: ${rect.left}px;
+                      width: ${rect.width}px; height: ${rect.height}px; margin: 0;
+                      z-index: 9999; pointer-events: none; border-radius: 0; overflow: hidden;
+                    `;
+                    document.body.appendChild(clone);
+
+                    const curtain = document.createElement("div");
+                    curtain.style.cssText = `
+                      position: fixed; inset: 0; background: black;
+                      z-index: 9998; opacity: 0; pointer-events: none;
+                    `;
+                    document.body.appendChild(curtain);
+
+                    const cloneVideo = clone.querySelector(
+                      "video",
+                    ) as HTMLVideoElement | null;
+                    if (cloneVideo) {
+                      cloneVideo.muted = true;
+                      cloneVideo.play().catch(() => {});
+                    }
+
+                    const tl = gsap.timeline({
+                      onComplete: () => {
+                        router.push(`/labs/${lab.id}`);
+                        clone.remove();
+                        curtain.remove();
+                      },
+                    });
+
+                    tl.to(clone, {
+                      top: 0,
+                      left: 0,
+                      width: "100vw",
+                      height: "100vh",
+                      duration: 1,
+                      ease: "power2.inOut",
+                    });
+                    if (cloneVideo) {
+                      tl.to(
+                        cloneVideo,
+                        {
+                          opacity: 0.9,
+                          scale: 1.1,
+                          filter: "grayscale(0)",
+                          duration: 1,
+                          ease: "power2.inOut",
+                        },
+                        "<",
+                      );
+                    }
+                    tl.to(
+                      curtain,
+                      { opacity: 1, duration: 0.5, ease: "power2.inOut" },
+                      "-=0.2",
+                    );
+                  }}
                   onMouseMove={(e) => {
                     const isTouchDevice =
                       "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -394,78 +469,9 @@ export default function Hub() {
                       </p>
                     </div>
                     <div
-                      onClick={() => {
-                        if (isNavigating) return;
-                        setIsNavigating(true);
-
-                        const card = document.getElementById(
-                          `lab-card-${lab.id}`,
-                        );
-                        if (!card) return;
-
-                        const rect = card.getBoundingClientRect();
-                        const clone = card.cloneNode(true) as HTMLElement;
-                        clone.style.cssText = `
-                          position: fixed; top: ${rect.top}px; left: ${rect.left}px;
-                          width: ${rect.width}px; height: ${rect.height}px; margin: 0;
-                          z-index: 9999; pointer-events: none; border-radius: 0; overflow: hidden;
-                        `;
-                        document.body.appendChild(clone);
-
-                        const curtain = document.createElement("div");
-                        curtain.style.cssText = `
-                          position: fixed; inset: 0; background: black;
-                          z-index: 9998; opacity: 0; pointer-events: none;
-                        `;
-                        document.body.appendChild(curtain);
-
-                        const cloneVideo = clone.querySelector(
-                          "video",
-                        ) as HTMLVideoElement | null;
-                        if (cloneVideo) {
-                          cloneVideo.muted = true;
-                          cloneVideo.play().catch(() => {});
-                        }
-
-                        const tl = gsap.timeline({
-                          onComplete: () => {
-                            router.push(`/labs/${lab.id}`);
-                            clone.remove();
-                            curtain.remove();
-                          },
-                        });
-
-                        tl.to(clone, {
-                          top: 0,
-                          left: 0,
-                          width: "100vw",
-                          height: "100vh",
-                          duration: 1,
-                          ease: "power2.inOut",
-                        });
-                        if (cloneVideo) {
-                          tl.to(
-                            cloneVideo,
-                            {
-                              opacity: 0.9,
-                              scale: 1.1,
-                              filter: "grayscale(0)",
-                              duration: 1,
-                              ease: "power2.inOut",
-                            },
-                            "<",
-                          );
-                        }
-                        tl.to(
-                          curtain,
-                          { opacity: 1, duration: 0.5, ease: "power2.inOut" },
-                          "-=0.2",
-                        );
-                      }}
-                      className="text-[10px] font-bold border-t border-white/10 pt-4 md:pt-8 text-white/20 tracking-[0.2em] md:tracking-[0.3em] flex justify-between items-center group-hover:text-white transition-colors cursor-pointer"
+                      className="text-[10px] font-bold border-t border-white/10 pt-4 md:pt-8 text-white/20 tracking-[0.2em] md:tracking-[0.3em] flex justify-between items-center group-hover:text-white transition-colors"
                     >
-                      <span>VIEW_LIVE_FEED</span>
-                      <span className="text-lg">→</span>
+                    
                     </div>
                   </div>
                 </div>
