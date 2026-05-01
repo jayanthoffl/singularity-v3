@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+/* ── GPU Compositor Layer Promotions ─────────────────────────────────────── */
+/* Elements that animate frequently get their own GPU layer from the start.  */
+/* This eliminates the "compositing surprise" jank on first animation.       */
+#smooth-content {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.marquee-track {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.marquee-logo {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.hero-heading {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.parallax-grid img {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.header__marq {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+
 @theme inline {
   --color-background: #0a0a0a;
   --color-foreground: #ededed;
@@ -24,14 +58,23 @@ body {
 .card-interactive {
   transform-style: preserve-3d;
   transition: transform 0.25s ease;
+  /* GPU layer promotion — avoids repaint on every hover/scroll */
+  will-change: transform;
+  backface-visibility: hidden;
+  /* Contain layout & paint to this card — prevents expensive full-page repaints */
+  contain: layout style paint;
 }
 
 .card-bg {
   transform: translateZ(-40px);
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
 }
 
 .lab-logo {
   transform: translateZ(40px);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .card-glow {

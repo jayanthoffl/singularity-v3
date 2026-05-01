@@ -7,7 +7,7 @@ import './TargetCursor.css';
 const TargetCursor = ({
   targetSelector = '.cursor-target',
   spinDuration = 2,
-  hideDefaultCursor = true,
+  hideDefaultCursor = false,
   hoverDuration = 0.2,
   parallaxOn = true
 }) => {
@@ -75,7 +75,8 @@ const TargetCursor = ({
       xPercent: -50,
       yPercent: -50,
       x: window.innerWidth / 2,
-      y: window.innerHeight / 2
+      y: window.innerHeight / 2,
+      opacity: 0
     });
 
     const createSpinTimeline = () => {
@@ -181,6 +182,13 @@ const TargetCursor = ({
       }
 
       activeTarget = target;
+      gsap.to(cursor, {
+        opacity: 1,
+        duration: 0.15,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+
       const corners = Array.from(cornersRef.current);
       corners.forEach(corner => gsap.killTweensOf(corner));
 
@@ -225,6 +233,12 @@ const TargetCursor = ({
         targetCornerPositionsRef.current = null;
         gsap.set(activeStrengthRef, { current: 0, overwrite: true });
         activeTarget = null;
+        gsap.to(cursor, {
+          opacity: 0,
+          duration: 0.2,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
 
         if (cornersRef.current) {
           const corners = Array.from(cornersRef.current);

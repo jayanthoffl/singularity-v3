@@ -6,6 +6,9 @@
   height: 0;
   pointer-events: none;
   z-index: 9999;
+  /* Own compositor layer: cursor spins/moves every frame */
+  will-change: transform;
+  backface-visibility: hidden;
   /* No mix-blend-mode — logo should render in true color on dark bg */
 }
 
@@ -33,6 +36,7 @@
   height: 10px;
   border: 2px solid rgba(255, 255, 255, 0.7);
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .corner-tl {

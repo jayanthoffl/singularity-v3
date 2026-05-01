@@ -12,6 +12,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [hexCode, setHexCode] = useState("0x00000000");
+  const [latency, setLatency] = useState(10);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const ringGroupRef = useRef<SVGGElement>(null);
@@ -48,6 +49,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
             .toUpperCase()
             .padStart(6, "0"),
       );
+      setLatency(Math.floor(Math.random() * 12 + 4));
     }, 45);
 
     return () => clearInterval(interval);
@@ -101,7 +103,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
         SYS.REQ // {hexCode}
       </div>
       <div className="absolute bottom-8 right-8 text-[10px] font-mono text-white/30 tracking-widest hidden md:block">
-        LATENCY: {Math.floor(Math.random() * 12 + 4)}ms
+        LATENCY: {latency}ms
       </div>
 
       {/* The Core Ring SVG */}

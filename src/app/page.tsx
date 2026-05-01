@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Flip } from "gsap/all";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
@@ -28,7 +28,7 @@ gsap.registerPlugin(
 const CLOUDINARY_BASE =
   "https://res.cloudinary.com/djtemmctt/image/upload/q_auto:eco,f_auto/";
 const CLOUDINARY_BASEVID =
-  "https://res.cloudinary.com/djtemmctt/video/upload/q_auto:eco,f_auto/";
+  "https://res.cloudinary.com/djtemmctt/video/upload/q_auto:eco,f_auto,w_960/";
 
 const singularityLogo =
   "https://res.cloudinary.com/djtemmctt/image/upload/v1771104005/singularity_new_logo_knedxr.png";
@@ -39,16 +39,54 @@ export default function Hub() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+  const activeVideoIndex = useRef<number | null>(null);
+  const warmedVideoIndexes = useRef<Set<number>>(new Set());
 
-  const playVideo = (index: number) => {
+  const warmCardVideo = useCallback((index: number) => {
     const vid = videoRefs.current[index];
-    if (vid && vid.paused) vid.play().catch(() => {});
-  };
+    if (!vid || warmedVideoIndexes.current.has(index)) return;
 
-  const pauseVideo = (index: number) => {
+    warmedVideoIndexes.current.add(index);
+    vid.preload = "auto";
+    vid.load();
+  }, []);
+
+  const playVideo = useCallback((index: number) => {
+    warmCardVideo(index);
+    activeVideoIndex.current = index;
+    Object.entries(videoRefs.current).forEach(([key, video]) => {
+      if (Number(key) !== index && video && !video.paused) {
+        video.pause();
+      }
+    });
+
+    const vid = videoRefs.current[index];
+    if (vid && vid.paused) {
+      vid.play().catch(() => {});
+    }
+  }, [warmCardVideo]);
+
+  const pauseVideo = useCallback((index: number) => {
     const vid = videoRefs.current[index];
     if (vid && !vid.paused) vid.pause();
-  };
+    if (activeVideoIndex.current === index) {
+      activeVideoIndex.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const timers: number[] = [];
+
+    labs.forEach((lab, index) => {
+      if (!lab.video_id) return;
+      const delay = index < 2 ? 300 + index * 600 : 1800 + index * 1000;
+      timers.push(window.setTimeout(() => warmCardVideo(index), delay));
+    });
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [warmCardVideo]);
 
   useGSAP(
     () => {
@@ -176,11 +214,21 @@ export default function Hub() {
           pinSpacing: false,
           anticipatePin: 1,
           onEnter: () => {
+            warmCardVideo(i + 1);
             playVideo(i);
-            if (i >= 2) pauseVideo(i - 2);
           },
           onLeaveBack: () => {
-            if (i >= 2) playVideo(i - 2);
+            if (i > 0) {
+              warmCardVideo(i - 1);
+              playVideo(i - 1);
+            } else {
+              pauseVideo(i);
+            }
+          },
+          onLeave: () => {
+            if (i === cards.length - 1) {
+              pauseVideo(i);
+            }
           },
         });
 
@@ -212,7 +260,7 @@ export default function Hub() {
     <div ref={container} className="bg-black text-white overflow-hidden">
       <TargetCursor
         spinDuration={3}
-        hideDefaultCursor={true}
+        hideDefaultCursor={false}
         parallaxOn={true}
         hoverDuration={0.25}
       />
@@ -328,10 +376,14 @@ export default function Hub() {
 
                     const rect = card.getBoundingClientRect();
                     const clone = card.cloneNode(true) as HTMLElement;
+
+                    // Position using fixed coords, but we'll animate via transform
+                    // (GPU-only: no layout recalc on every frame)
                     clone.style.cssText = `
                       position: fixed; top: ${rect.top}px; left: ${rect.left}px;
                       width: ${rect.width}px; height: ${rect.height}px; margin: 0;
                       z-index: 9999; pointer-events: none; border-radius: 0; overflow: hidden;
+                      will-change: transform; backface-visibility: hidden;
                     `;
                     document.body.appendChild(clone);
 
@@ -339,6 +391,7 @@ export default function Hub() {
                     curtain.style.cssText = `
                       position: fixed; inset: 0; background: black;
                       z-index: 9998; opacity: 0; pointer-events: none;
+                      will-change: opacity;
                     `;
                     document.body.appendChild(curtain);
 
@@ -350,6 +403,13 @@ export default function Hub() {
                       cloneVideo.play().catch(() => {});
                     }
 
+                    // Calculate scale factors to fill viewport via transform
+                    // Avoids animating top/left/width/height (layout-thrashing)
+                    const scaleX = window.innerWidth / rect.width;
+                    const scaleY = window.innerHeight / rect.height;
+                    const targetX = -rect.left + (window.innerWidth - rect.width) / 2;
+                    const targetY = -rect.top + (window.innerHeight - rect.height) / 2;
+
                     const tl = gsap.timeline({
                       onComplete: () => {
                         router.push(`/labs/${lab.id}`);
@@ -358,13 +418,15 @@ export default function Hub() {
                       },
                     });
 
+                    // GPU-only animation: translate + scale (compositor thread, no layout)
                     tl.to(clone, {
-                      top: 0,
-                      left: 0,
-                      width: "100vw",
-                      height: "100vh",
+                      x: targetX,
+                      y: targetY,
+                      scaleX,
+                      scaleY,
                       duration: 1,
                       ease: "power2.inOut",
+                      force3D: true,
                     });
                     if (cloneVideo) {
                       tl.to(
@@ -375,6 +437,7 @@ export default function Hub() {
                           filter: "grayscale(0)",
                           duration: 1,
                           ease: "power2.inOut",
+                          force3D: true,
                         },
                         "<",
                       );
@@ -385,6 +448,7 @@ export default function Hub() {
                       "-=0.2",
                     );
                   }}
+                  onPointerEnter={() => warmCardVideo(i)}
                   onMouseMove={(e) => {
                     const isTouchDevice =
                       "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -430,12 +494,13 @@ export default function Hub() {
                         }}
                         onLoadedData={handleMediaLoad}
                         src={`${CLOUDINARY_BASEVID}/${lab.video_id}.mp4`}
-                        autoPlay
+                        preload="metadata"
                         loop
                         muted
                         playsInline
-                        style={{ willChange: "transform" }}
-                        className="card-bg w-full h-full object-cover opacity-35 grayscale group-hover:grayscale-0 group-hover:opacity-70 transition-all duration-1000 scale-110 group-hover:scale-100"
+                        poster={singularityLogo}
+                        style={{ willChange: "opacity, transform" }}
+                        className="card-bg w-full h-full object-cover opacity-35 group-hover:opacity-70 transition-opacity duration-700"
                       />
                     ) : (
                       <img
