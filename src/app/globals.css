@@ -1,13 +1,51 @@
 @import "tailwindcss";
 
+/* ── GPU Compositor Layer Promotions ─────────────────────────────────────── */
+/* Elements that animate frequently get their own GPU layer from the start.  */
+/* This eliminates the "compositing surprise" jank on first animation.       */
+#smooth-content {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.marquee-track {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.marquee-logo {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.hero-heading {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.parallax-grid img {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.header__marq {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+
 @theme inline {
   --color-background: #0a0a0a;
   --color-foreground: #ededed;
   --animate-marquee: marquee 25s linear infinite;
 
   @keyframes marquee {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-100%); }
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
   }
 }
 
@@ -20,20 +58,29 @@ body {
 .card-interactive {
   transform-style: preserve-3d;
   transition: transform 0.25s ease;
+  /* GPU layer promotion — avoids repaint on every hover/scroll */
+  will-change: transform;
+  backface-visibility: hidden;
+  /* Contain layout & paint to this card — prevents expensive full-page repaints */
+  contain: layout style paint;
 }
 
 .card-bg {
   transform: translateZ(-40px);
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
 }
 
 .lab-logo {
   transform: translateZ(40px);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .card-glow {
   background: radial-gradient(
     circle at center,
-    rgba(255,255,255,0.15),
+    rgba(255, 255, 255, 0.15),
     transparent 60%
   );
 }
@@ -41,12 +88,32 @@ body {
 .card-light {
   background: radial-gradient(
     circle at var(--x) var(--y),
-    rgba(255,255,255,0.25),
+    rgba(255, 255, 255, 0.25),
     transparent 40%
   );
   transition: opacity 0.3s;
 }
 
-.lab-logo{
+.lab-logo {
   transform: translateZ(40px);
+}
+
+/* Prevent horizontal overflow and disable heavy 3D transforms on mobile */
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .card-interactive {
+    transform: none !important;
+    transform-style: flat;
+  }
+
+  .card-bg {
+    transform: none;
+  }
+
+  .lab-logo {
+    transform: none;
+  }
 }

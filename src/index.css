@@ -1,11 +1,10 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@700&display=swap");
 
 :root {
   background-color: #000;
   color: #fff;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .card-wrapper {
@@ -21,7 +20,6 @@ video {
   backface-visibility: hidden;
   transform: translateZ(0);
 }
-
 
 /* Enable 3D rendering */
 .perspective-1000 {
@@ -47,16 +45,18 @@ video {
   background: #222;
 }
 
-
 :root {
   --f-5-min: 30;
   --f-5-max: 120;
   --fluid-bp: calc((100vw - 320px) / (1920 - 320));
-  --step-5: calc(((var(--f-5-min) / 16) * 1rem) + (var(--f-5-max) - var(--f-5-min)) * var(--fluid-bp));
+  --step-5: calc(
+    ((var(--f-5-min) / 16) * 1rem) + (var(--f-5-max) - var(--f-5-min)) *
+      var(--fluid-bp)
+  );
 }
 
 #smooth-wrapper {
-  font-family: 'Unbounded', sans-serif;
+  font-family: "Unbounded", sans-serif;
 }
 
 .hero-heading {
@@ -92,4 +92,20 @@ video {
   max-width: 100%;
   height: 60vh;
   object-fit: cover;
+}
+
+/* Mobile-specific layout adjustments */
+@media (max-width: 767px) {
+  .parallax-images {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .parallax-images img {
+    height: 35vh;
+  }
+
+  .hero-heading {
+    font-size: clamp(2rem, 11vw, 4rem);
+  }
 }
