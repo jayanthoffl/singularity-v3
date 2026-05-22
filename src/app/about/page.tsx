@@ -4,7 +4,7 @@ import { useRef } from "react"
 import gsap from "gsap"
 import { useGSAP } from "@gsap/react"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Instagram, Linkedin, Github } from "lucide-react"
+import { Instagram, Linkedin, Github,Globe } from "lucide-react"
 import Footer from "@/src/components/Footer"
 
 const singularityLogo = "https://res.cloudinary.com/djtemmctt/image/upload/v1771104005/singularity_new_logo_knedxr.png"
@@ -136,6 +136,9 @@ export default function AboutPage() {
                   Founder & Lead
                 </p>
                 <div className="flex gap-5 mt-4">
+                  <a href="https://jayanthramakrishnan.online" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white hover:scale-110 transition-all" aria-label="Personal Website">
+                    <Globe size={20} />
+                  </a>
                   <a href="https://instagram.com/thejayanthramakrishnan" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white hover:scale-110 transition-all">
                     <Instagram size={20} />
                   </a>
